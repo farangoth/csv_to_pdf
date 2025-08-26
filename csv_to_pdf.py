@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 
 
 parser = argparse.ArgumentParser(
-        prog="csv_to_pdf",
-        description="Downloads PDFs from URLs in a CSV file and merge them into a single PDF.",
-    )
+    prog="csv_to_pdf",
+    description="Downloads PDFs from URLs in a CSV file and merge them into a single PDF.",
+)
 parser.add_argument(
-        "input",
-        nargs="?",
-        help="csv file with the url to download. Must be in the 'pdf' column",
-    )
+    "input",
+    nargs="?",
+    help="csv file with the url to download. Must be in the 'pdf' column",
+)
 parser.add_argument("-o", "--output", help="name of the pdf file to export")
 
 
@@ -132,13 +132,14 @@ def download_merge_pdfs(urls, outputfile="output.pdf"):
 def send_output(merged_pdf, sender, receiver):
     pass
 
+
 def print_progress_bar(step, total, desc=""):
     """Print a progress bar for step/total."""
     length = 100
     fill = "█"
     done_fill = int(length * step // total)
-    bar = fill * done_fill + "-" * (length-done_fill) 
-    print(f"\r{desc}: {bar}{step/total:.2%} ({step}/{total})", end=" ")
+    bar = fill * done_fill + "-" * (length - done_fill)
+    print(f"\r{desc}: {bar}{step / total:.2%} ({step}/{total})", end=" ")
 
 
 def main():
@@ -149,6 +150,9 @@ def main():
         print(f"get an explicit input file: {csv_file}")
     else:
         csv_file = get_last_csv()
+        if csv_file is None:
+            logger.error("no CSV file found.")
+            return
         logger.info(f"using last modified csv file: {csv_file}")
         print(f"using last modified csv file: {csv_file}")
     if not csv_file:

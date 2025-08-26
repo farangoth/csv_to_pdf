@@ -1,5 +1,6 @@
 #!/bin/env python3
 
+import argparse
 import csv
 import glob
 import logging
@@ -11,6 +12,7 @@ import requests
 from pypdf import PdfWriter
 from requests.exceptions import HTTPError
 
+
 logging.basicConfig(
     format="%(asctime)s %(levelname)-4s %(message)s",
     filename="csv_to_pdf.log",
@@ -21,15 +23,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+parser = argparse.ArgumentParser(
+        prog="csv_to_pdf",
+        description="Downloads PDFs from URLs in a CSV file and merge them into a single PDF.",
+    )
+parser.add_argument(
+        "input",
+        nargs="?",
+        help="csv file with the url to download. Must be in the 'pdf' column",
+    )
+parser.add_argument("-o", "--output", help="name of the pdf file to export")
+
+
 def get_last_csv(directory="."):
     """Returns the rows from a CSV file."""
     try:
         csv_files = glob.glob(os.path.join("csv", "*.csv"))
-
         if not csv_files:
             logger.warning("No CSV files found in the 'csv' directory.")
             return None
-
         latest_csv = max(csv_files, key=os.path.getmtime)
         logger.info(f"Found csv file: {latest_csv}")
         return latest_csv
@@ -97,11 +109,11 @@ def get_pdf_from_url(url, dest_folder, filename=None):
         logger.error(f"Error while opening {url}: {error}")
 
 
-def download_merge_pdfs(urls):
+def download_merge_pdfs(urls, outputfile="output.pdf"):
     """Get all the pdfs and merge them into one file."""
     with tempfile.TemporaryDirectory() as tmpdirname:
         merger = PdfWriter()
-        output_name = "output.pdf"
+        output_name = outputfile
         index = 0
         for url in urls:
             index += 1
@@ -110,6 +122,7 @@ def download_merge_pdfs(urls):
             merger.append(os.path.join(tmpdirname, filename))
             logger.info(f"add {filename} to {output_name}")
         merger.write(output_name)
+        logger.info(f"output file created: {output_name}")
         merger.close()
 
 
@@ -118,9 +131,22 @@ def send_output(merged_pdf, sender, receiver):
 
 
 def main():
-    csv_file = get_last_csv()
+    args = parser.parse_args()
+    if args.input:
+        csv_file = args.input
+        logger.info(f"get an explicit input file: {csv_file}")
+    else:
+        csv_file = get_last_csv()
+        logger.info(f"using last modified csv file: {csv_file}")
+    if not csv_file:
+        logger.error("no CSV file found.")
+        return
     urls = parse_csv_for_urls(csv_file)
-    download_merge_pdfs(urls) 
+    if args.output:
+        logger.info(f"get an explicit output file name: {args.output}")
+        download_merge_pdfs(urls, args.output)
+    else:
+        download_merge_pdfs(urls)
 
 
 if __name__ == "__main__":

@@ -10,6 +10,8 @@ import tempfile
 import requests
 from pypdf import PdfWriter
 
+from decorators import progressbar
+
 logging.basicConfig(
     format="%(asctime)s %(levelname)-4s %(message)s",
     filename="csv_to_pdf.log",
@@ -106,22 +108,23 @@ class CsvToPdf:
                 return None
         except requests.RequestException as error:
             logger.exception(f"error on {url}: {error}")
-
+    
+    @progressbar
     def get_merge_pdfs(self, urls):
         """Download all pdf in temp dir and merge them to output."""
         logger.info(f"{self} is downloading")
         merger = PdfWriter()
         with tempfile.TemporaryDirectory() as tmpdir:
-            # step = 0
+            step = 0
             for url in urls:
-                # step += 1
+                step += 1
                 pdffile = self.download_pdf(url, tmpdir)
                 try:
                     merger.append(pdffile)
                     logger.info(f"{pdffile} added to {self.outputfile}")
                 except Exception as e:
                     logger.error(f"error while adding {pdffile}: {e}")
-                # yield (step / len(urls))
+                yield (step / len(urls))
             if merger.pages:
                 merger.write(self.outputfile)
                 logger.info(f"{self.outputfile} created")
@@ -135,6 +138,7 @@ def main():
     csvtopdf = CsvToPdf()
     csv_file = csvtopdf.get_last_csv()
     urls = csvtopdf.get_url_from_csv(csv_file)
+    print(f"{csv_file} ({len(urls)} pdf) --> {csvtopdf.outputfile}")
     csvtopdf.get_merge_pdfs(urls)
 
 

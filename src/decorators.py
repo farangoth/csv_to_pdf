@@ -9,20 +9,20 @@ class ProgressBarPrinter:
         self.char_line = char_line
         self.start_time = time.time()
 
-        print(f"{self.desc} [{self.char_line * self.width}] 0.00% - 0.00s", end="")
+        print(f"{self.desc} [{self.char_line * self.width}] 0.00% - 0.0s", end="")
 
     def update(self, progress):
         run_time = time.time() - self.start_time
         done = self.char_block * int(progress * self.width)
         to_do = self.char_line * int((1 - progress) * self.width)
-        print(f"\r{self.desc} [{done}{to_do}] {progress:.2%} - {run_time:.3}s", end="")
+        print(f"\r{self.desc} [{done}{to_do}] {progress:.2%} - {run_time:.2}s", end="")
 
     def end_bar(self):
         run_time = time.time() - self.start_time
-        print(f"\r{self.desc} is complete in {run_time}", end="")
+        print(f"\n{self.desc} is complete in {run_time:.2}s", end="")
 
 
-def progressbar(func):
+def progress_bar(func):
     def wrapper(*args, **kwargs):
         progress_bar = ProgressBarPrinter(desc=func.__name__)
         process = func(*args, **kwargs)
@@ -37,7 +37,7 @@ def progressbar(func):
     return wrapper
 
 
-@progressbar
+@progress_bar
 def dummy_loop(n_iter):
     n_iter = n_iter
     for i in range(n_iter):

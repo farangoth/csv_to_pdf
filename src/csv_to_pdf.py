@@ -77,7 +77,6 @@ class CsvToPdf:
         if not filename_match:
             return None
         return filename_match.group(1).strip("'\"")
-        
 
     def _is_pdf_file(self, header):
         """Check if the file at url is a pdf file"""
@@ -108,7 +107,7 @@ class CsvToPdf:
                 return None
         except requests.RequestException as error:
             logger.exception(f"error on {url}: {error}")
-    
+
     @progress_bar
     def get_merge_pdfs(self, urls):
         """Download all pdf in temp dir and merge them to output."""
